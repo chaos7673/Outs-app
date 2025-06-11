@@ -112,14 +112,12 @@
   </div>
 
   <div class="container">
-    <!-- Walkthrough Section -->
     <div class="section" id="walkthrough">
       <h3>Mark Items Out of Stock</h3>
       <input type="text" id="searchWalkthrough" class="search-bar" placeholder="Search for an item..." oninput="searchItems()">
       <div id="walkthroughList"></div>
     </div>
 
-    <!-- Pull List Section -->
     <div class="section" id="pull" style="display:none">
       <h3>Pull List</h3>
       <h4>Standard Pull List</h4>
@@ -128,7 +126,6 @@
       <div id="overheadPullList"></div>
     </div>
 
-    <!-- Inventory Section -->
     <div class="section" id="inventory" style="display:none">
       <h3>Inventory Management</h3>
       <input id="newItemName" placeholder="Item Name" />
@@ -233,6 +230,11 @@
       loadInventory();
     }
 
+    // Overhead Pull List
+    async function addToOverhead(itemName) {
+      await addDoc(outOfStockCol, { item: itemName, category: "Overhead", time: new Date(), overhead: true });
+    }
+
     // Switch Tab (Walkthrough, Pull List, Inventory)
     function switchMode(mode) {
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -241,11 +243,6 @@
       document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
       document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
       document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
-    }
-
-    // Overhead Pull List
-    async function addToOverhead(itemName) {
-      await addDoc(outOfStockCol, { item: itemName, category: "Overhead", time: new Date(), overhead: true });
     }
 
     // Real-time Updates to Pull List and Overhead List
