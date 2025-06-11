@@ -5,20 +5,117 @@
   <title>Store Walkthrough App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    button { margin: 5px; padding: 8px 12px; }
-    .item { margin: 5px 0; }
-    .mode-button { margin-right: 10px; }
-    .section { margin-top: 30px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fffaf5;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #ff6600;
+    }
+
+    h3 {
+      color: #ff6600;
+      border-bottom: 2px solid #ffcc99;
+      padding-bottom: 5px;
+      margin-top: 30px;
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff3e6;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 8px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    button {
+      background-color: #ff6600;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e65c00;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-right: 8px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    li {
+      background-color: #fff3e6;
+      margin: 8px 0;
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      border-top: 1px solid #ddd;
+      background-color: #fffaf5;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    }
+
+    .tab-bar button {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 0;
+      background-color: transparent;
+      border: none;
+      color: #666;
+    }
+
+    .tab-bar button.active {
+      background-color: #ff6600;
+      color: white;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <h2>Store Walkthrough App</h2>
-  <div>
-    <button class="mode-button" onclick="switchMode('walkthrough')">Walkthrough Mode</button>
-    <button class="mode-button" onclick="switchMode('pull')">Pull List Mode</button>
-    <button class="mode-button" onclick="switchMode('inventory')">Inventory</button>
-  </div>
 
   <div class="section" id="walkthrough" style="display: none;">
     <h3>Walkthrough Mode</h3>
@@ -37,9 +134,15 @@
     <ul id="inventory-admin"></ul>
   </div>
 
+  <div class="tab-bar">
+    <button onclick="switchMode('walkthrough')" id="tab-walkthrough">Walkthrough</button>
+    <button onclick="switchMode('pull')" id="tab-pull">Pull List</button>
+    <button onclick="switchMode('inventory')" id="tab-inventory">Inventory</button>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCj4IuKWxrVLkUFLZHPw2pvwGsO6gaAP-k",
@@ -56,6 +159,8 @@
     const inventoryCol = collection(db, "inventory");
     const outOfStockCol = collection(db, "outOfStock");
 
+    const outItems = new Set();
+
     async function loadInventory() {
       const snapshot = await getDocs(inventoryCol);
       const container = document.getElementById("inventory-list");
@@ -66,7 +171,16 @@
         const data = docItem.data();
         const div = document.createElement("div");
         div.className = "item";
-        div.innerHTML = `${data.name} <button onclick="markOut('${data.name}')">Out of Stock</button>`;
+        const button = document.createElement("button");
+        button.textContent = "Out of Stock";
+        if (outItems.has(data.name)) {
+          button.disabled = true;
+          button.textContent = "Marked Out";
+        } else {
+          button.onclick = () => markOut(data.name);
+        }
+        div.innerHTML = `${data.name} `;
+        div.appendChild(button);
         container.appendChild(div);
 
         const li = document.createElement("li");
@@ -91,24 +205,32 @@
     }
 
     async function markOut(itemName) {
-      await addDoc(outOfStockCol, { item: itemName, time: new Date() });
+      if (!outItems.has(itemName)) {
+        await addDoc(outOfStockCol, { item: itemName, time: new Date() });
+      }
     }
 
     function switchMode(mode) {
       document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
       document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
       document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
+      document.querySelectorAll('.tab-bar button').forEach(btn => btn.classList.remove('active'));
+      const tabButton = document.getElementById(`tab-${mode}`);
+      if (tabButton) tabButton.classList.add('active');
     }
 
     const pullList = document.getElementById("pull-list");
     onSnapshot(outOfStockCol, snapshot => {
       pullList.innerHTML = "";
+      outItems.clear();
       snapshot.forEach(docItem => {
         const data = docItem.data();
+        outItems.add(data.item);
         const li = document.createElement("li");
         li.innerHTML = `${data.item} <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
         pullList.appendChild(li);
       });
+      loadInventory();
     });
 
     async function deletePulled(id) {
