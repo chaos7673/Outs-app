@@ -1,75 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Outs App</title>
+  <meta charset="UTF-8">
+  <title>Store Walkthrough App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-      background-color: #f8f9fa;
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      background: #fff;
-      margin-bottom: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-    }
-
-    button {
-      background: #ff4d4f;
-      border: none;
-      color: white;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #d9363e;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { margin: 5px; padding: 8px 12px; }
+    .item { margin: 5px 0; }
+    .mode-button { margin-right: 10px; }
+    .section { margin-top: 30px; }
   </style>
 </head>
 <body>
-  <h1>Mark Items as Out of Stock</h1>
-  <ul id="item-list">
-    <li>Item A <button onclick="markOut(this)">Out</button></li>
-    <li>Item B <button onclick="markOut(this)">Out</button></li>
-    <li>Item C <button onclick="markOut(this)">Out</button></li>
-    <!-- Add more items as needed -->
-  </ul>
+  <h2>Store Walkthrough App</h2>
+  <div>
+    <button class="mode-button" onclick="switchMode('walkthrough')">Walkthrough Mode</button>
+    <button class="mode-button" onclick="switchMode('pull')">Pull List Mode</button>
+    <button class="mode-button" onclick="switchMode('inventory')">Inventory</button>
+  </div>
 
-  <script>
-    function markOut(button) {
-      const item = button.parentElement;
-      item.style.opacity = 0.4;
-      button.disabled = true;
-      button.textContent = "Marked";
-      // Here is where you will later send to Firebase
-      console.log("Marked out:", item.textContent.trim());
-    }
-  </script>
+  <div class="section" id="walkthrough" style="display: none;">
+    <h3>Walkthrough Mode</h3>
+    <div id="inventory-list"></div>
+  </div>
 
-  <!-- Firebase SDK -->
+  <div class="section" id="pull" style="display: none;">
+    <h3>Pull List</h3>
+    <ul id="pull-list"></ul>
+  </div>
+
+  <div class="section" id="inventory" style="display: none;">
+    <h3>Inventory Management</h3>
+    <input id="new-item" placeholder="Item name">
+    <button onclick="addItem()">Add Item</button>
+    <ul id="inventory-admin"></ul>
+  </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCj4IuKWxrVLkUFLZHPw2pvwGsO6gaAP-k",
@@ -81,7 +51,77 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    console.log("✅ Firebase initialized");
+    const db = getFirestore(app);
+
+    const inventoryCol = collection(db, "inventory");
+    const outOfStockCol = collection(db, "outOfStock");
+
+    async function loadInventory() {
+      const snapshot = await getDocs(inventoryCol);
+      const container = document.getElementById("inventory-list");
+      const admin = document.getElementById("inventory-admin");
+      container.innerHTML = "";
+      admin.innerHTML = "";
+      snapshot.forEach(docItem => {
+        const data = docItem.data();
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `${data.name} <button onclick="markOut('${data.name}')">Out of Stock</button>`;
+        container.appendChild(div);
+
+        const li = document.createElement("li");
+        li.innerHTML = `${data.name} <button onclick="deleteItem('${docItem.id}')">Delete</button>`;
+        admin.appendChild(li);
+      });
+    }
+
+    async function addItem() {
+      const input = document.getElementById("new-item");
+      const name = input.value.trim();
+      if (name) {
+        await addDoc(inventoryCol, { name });
+        input.value = "";
+        loadInventory();
+      }
+    }
+
+    async function deleteItem(id) {
+      await deleteDoc(doc(db, "inventory", id));
+      loadInventory();
+    }
+
+    async function markOut(itemName) {
+      await addDoc(outOfStockCol, { item: itemName, time: new Date() });
+    }
+
+    function switchMode(mode) {
+      document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
+      document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
+      document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
+    }
+
+    const pullList = document.getElementById("pull-list");
+    onSnapshot(outOfStockCol, snapshot => {
+      pullList.innerHTML = "";
+      snapshot.forEach(docItem => {
+        const data = docItem.data();
+        const li = document.createElement("li");
+        li.innerHTML = `${data.item} <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
+        pullList.appendChild(li);
+      });
+    });
+
+    async function deletePulled(id) {
+      await deleteDoc(doc(db, "outOfStock", id));
+    }
+
+    loadInventory();
+    switchMode('walkthrough');
+    window.markOut = markOut;
+    window.deleteItem = deleteItem;
+    window.addItem = addItem;
+    window.deletePulled = deletePulled;
+    window.switchMode = switchMode;
   </script>
 </body>
 </html>
