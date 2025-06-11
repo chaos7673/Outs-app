@@ -5,47 +5,114 @@
   <title>Store Walkthrough App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #fff8f0; color: #333; }
-    button { margin: 5px; padding: 8px 12px; background-color: orange; color: white; border: none; border-radius: 4px; }
-    button:disabled { background-color: #ccc; }
-    .item { margin: 5px 0; }
-    .tabs { display: flex; justify-content: space-around; position: fixed; bottom: 0; width: 100%; background: #ffa726; padding: 10px 0; }
-    .tab { flex: 1; text-align: center; font-weight: bold; cursor: pointer; color: white; }
-    .section { margin-bottom: 70px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #ff6600;
+      padding: 10px;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+    header img {
+      height: 40px;
+      margin-right: 10px;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+    .tabs {
+      display: flex;
+      background-color: #ffa64d;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: white;
+    }
+    .tab.active {
+      background-color: #ff6600;
+    }
+    .content {
+      padding: 20px;
+    }
+    .item {
+      background: white;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .category-label {
+      font-size: 0.8em;
+      color: #666;
+    }
+    button {
+      padding: 6px 12px;
+      background-color: #ff6600;
+      border: none;
+      color: white;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #aaa;
+    }
+    input, select {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      max-width: 300px;
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <h2>Store Walkthrough App</h2>
-
-  <div class="section" id="walkthrough" style="display: none;">
-    <h3>Walkthrough Mode</h3>
-    <div id="inventory-list"></div>
-  </div>
-
-  <div class="section" id="pull" style="display: none;">
-    <h3>Pull List</h3>
-    <ul id="pull-list"></ul>
-  </div>
-
-  <div class="section" id="inventory" style="display: none;">
-    <h3>Inventory Management</h3>
-    <input id="new-item" placeholder="Item name">
-    <select id="new-category">
-      <option value="Soil">Soil</option>
-      <option value="Mulch">Mulch</option>
-      <option value="Rock">Rock</option>
-      <option value="Brick">Brick</option>
-      <option value="Block">Block</option>
-      <option value="Pavers">Pavers</option>
-    </select>
-    <button onclick="addItem()">Add Item</button>
-    <ul id="inventory-admin"></ul>
-  </div>
-
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/TheHomeDepot.svg/2560px-TheHomeDepot.svg.png" alt="Logo">
+    <h1>Store Walkthrough App</h1>
+  </header>
   <div class="tabs">
-    <div class="tab" onclick="switchMode('walkthrough')">Walkthrough</div>
+    <div class="tab active" onclick="switchMode('walkthrough')">Walkthrough</div>
     <div class="tab" onclick="switchMode('pull')">Pull List</div>
     <div class="tab" onclick="switchMode('inventory')">Inventory</div>
+  </div>
+  <div class="content">
+    <div id="walkthrough-section">
+      <h3>Mark Items Out of Stock</h3>
+      <div id="inventory-list"></div>
+    </div>
+    <div id="pull-section" style="display:none">
+      <h3>Pull List</h3>
+      <ul id="pull-list"></ul>
+    </div>
+    <div id="inventory-section" style="display:none">
+      <h3>Manage Inventory</h3>
+      <input id="new-item" placeholder="Item name">
+      <select id="new-category">
+        <option value="Soil">Soil</option>
+        <option value="Mulch">Mulch</option>
+        <option value="Rock">Rock</option>
+        <option value="Brick">Brick</option>
+        <option value="Block">Block</option>
+        <option value="Paver">Paver</option>
+      </select>
+      <button onclick="addItem()">Add Item</button>
+      <ul id="inventory-admin"></ul>
+    </div>
   </div>
 
   <script type="module">
@@ -77,15 +144,14 @@
         const data = docItem.data();
         const div = document.createElement("div");
         div.className = "item";
-        const button = document.createElement("button");
-        button.textContent = "Out of Stock";
-        button.onclick = () => {
-          markOut(data.name, data.category);
-          button.textContent = "Marked Out";
-          button.disabled = true;
+        const btn = document.createElement("button");
+        btn.textContent = "Out of Stock";
+        btn.onclick = async () => {
+          btn.disabled = true;
+          await addDoc(outOfStockCol, { item: data.name, category: data.category, time: new Date() });
         };
-        div.innerHTML = `<strong>${data.name}</strong> (${data.category}) `;
-        div.appendChild(button);
+        div.innerHTML = `<div><strong>${data.name}</strong><div class='category-label'>${data.category}</div></div>`;
+        div.appendChild(btn);
         container.appendChild(div);
 
         const li = document.createElement("li");
@@ -110,14 +176,16 @@
       loadInventory();
     }
 
-    async function markOut(itemName, category) {
-      await addDoc(outOfStockCol, { item: itemName, category, time: new Date() });
+    async function deletePulled(id) {
+      await deleteDoc(doc(db, "outOfStock", id));
     }
 
     function switchMode(mode) {
-      document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
-      document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
-      document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
+      document.getElementById("walkthrough-section").style.display = mode === 'walkthrough' ? "block" : "none";
+      document.getElementById("pull-section").style.display = mode === 'pull' ? "block" : "none";
+      document.getElementById("inventory-section").style.display = mode === 'inventory' ? "block" : "none";
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.querySelector(`.tab[onclick*='${mode}']`).classList.add("active");
     }
 
     const pullList = document.getElementById("pull-list");
@@ -126,21 +194,17 @@
       snapshot.forEach(docItem => {
         const data = docItem.data();
         const li = document.createElement("li");
-        li.innerHTML = `${data.item} (${data.category}) <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
+        li.className = "item";
+        li.innerHTML = `<div><strong>${data.item}</strong><div class='category-label'>${data.category}</div></div> <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
         pullList.appendChild(li);
       });
     });
 
-    async function deletePulled(id) {
-      await deleteDoc(doc(db, "outOfStock", id));
-    }
-
     loadInventory();
     switchMode('walkthrough');
-    window.markOut = markOut;
+    window.deletePulled = deletePulled;
     window.deleteItem = deleteItem;
     window.addItem = addItem;
-    window.deletePulled = deletePulled;
     window.switchMode = switchMode;
   </script>
 </body>
