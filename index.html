@@ -1,48 +1,87 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Mark Items Out of Stock</title>
-  </head>
-  <body>
-    <h1>Mark Items Out of Stock</h1>
-    <button id="milkBtn">Milk is Out</button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Outs App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+      background-color: #f8f9fa;
+    }
 
-    <script type="module">
-      // Import Firebase SDK
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    h1 {
+      text-align: center;
+    }
 
-      // Your Firebase project config (copy from Firebase Console)
-      const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        projectId: "YOUR_PROJECT",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-      };
+    ul {
+      list-style: none;
+      padding: 0;
+    }
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background: #fff;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
 
-      // Function to mark item out of stock
-      async function markOutOfStock(itemName) {
-        try {
-          await addDoc(collection(db, "out-of-stock"), {
-            name: itemName,
-            timestamp: new Date()
-          });
-          alert(`${itemName} marked out of stock`);
-        } catch (e) {
-          console.error("Error adding document: ", e);
-        }
-      }
+    button {
+      background: #ff4d4f;
+      border: none;
+      color: white;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
 
-      // Button click event
-      document.getElementById("milkBtn").addEventListener("click", () => {
-        markOutOfStock("Milk");
-      });
-    </script>
-  </body>
+    button:hover {
+      background: #d9363e;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mark Items as Out of Stock</h1>
+  <ul id="item-list">
+    <li>Item A <button onclick="markOut(this)">Out</button></li>
+    <li>Item B <button onclick="markOut(this)">Out</button></li>
+    <li>Item C <button onclick="markOut(this)">Out</button></li>
+    <!-- Add more items as needed -->
+  </ul>
+
+  <script>
+    function markOut(button) {
+      const item = button.parentElement;
+      item.style.opacity = 0.4;
+      button.disabled = true;
+      button.textContent = "Marked";
+      // Here is where you will later send to Firebase
+      console.log("Marked out:", item.textContent.trim());
+    }
+  </script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCj4IuKWxrVLkUFLZHPw2pvwGsO6gaAP-k",
+      authDomain: "outsapp2.firebaseapp.com",
+      projectId: "outsapp2",
+      storageBucket: "outsapp2.firebasestorage.app",
+      messagingSenderId: "890824530192",
+      appId: "1:890824530192:web:8bb8ec74c444944fc9ed95"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    console.log("✅ Firebase initialized");
+  </script>
+</body>
 </html>
