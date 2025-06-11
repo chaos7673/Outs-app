@@ -1,110 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Garden Recovery</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Depot Recovery</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #fff8f0;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
       color: #333;
     }
-    button {
-      margin: 5px;
-      padding: 8px 12px;
-      background-color: orange;
+
+    .header {
+      background-color: #f96302;
       color: white;
-      border: none;
-      border-radius: 4px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    button:disabled {
-      background-color: #ccc;
-    }
-    .item {
-      margin: 5px 0;
-    }
+
     .tabs {
       display: flex;
-      justify-content: space-around;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #ffa726;
-      padding: 10px 0;
+      justify-content: center;
+      background-color: #ffa64d;
     }
-    .tab {
+
+    .tab-button {
       flex: 1;
-      text-align: center;
+      padding: 14px;
+      background: none;
+      border: none;
+      font-size: 16px;
       font-weight: bold;
-      cursor: pointer;
       color: white;
+      cursor: pointer;
     }
-    .section {
-      margin-bottom: 70px;
+
+    .tab-button.active {
+      background-color: #f96302;
+      border-bottom: 3px solid white;
     }
-    .search-bar {
-      padding: 8px;
-      margin-bottom: 20px;
-      width: 100%;
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h3 {
+      margin-top: 0;
+    }
+
+    .item-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #fff;
+      padding: 12px 20px;
+      margin: 10px 0;
       border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .item-card.out-marked {
+      opacity: 0.6;
+    }
+
+    button.out-btn {
+      background-color: #f96302;
+      border: none;
+      color: white;
+      padding: 8px 16px;
       border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .category-label {
+      font-size: 12px;
+      color: #999;
+    }
+
+    input, select {
+      padding: 8px;
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-  <h2>Store Walkthrough App</h2>
-
-  <!-- Walkthrough Section -->
-  <div class="section" id="walkthrough" style="display: none;">
-    <h3>Walkthrough Mode</h3>
-    <input type="text" id="searchWalkthrough" class="search-bar" placeholder="Search for an item..." oninput="searchItems()">
-    <div id="inventory-list"></div>
+  <div class="header">
+    <h1>Depot Recovery</h1>
   </div>
-
-  <!-- Pull List Section -->
-  <div class="section" id="pull" style="display: none;">
-    <h3>Pull List</h3>
-    <h4>Standard Pull List</h4>
-    <ul id="pull-list"></ul>
-    <h4>Overhead Pull List</h4>
-    <ul id="overhead-pull-list"></ul>
-  </div>
-
-  <!-- Inventory Section -->
-  <div class="section" id="inventory" style="display: none;">
-    <h3>Inventory Management</h3>
-    <input id="new-item" placeholder="Item name">
-    <select id="new-category">
-      <option value="Soil">Soil</option>
-      <option value="Mulch">Mulch</option>
-      <option value="Rock">Rock</option>
-      <option value="Brick">Brick</option>
-      <option value="Block">Block</option>
-      <option value="Pavers">Pavers</option>
-    </select>
-    <button onclick="addItem()">Add Item</button>
-    <ul id="inventory-admin"></ul>
-  </div>
-
-  <!-- Tab Navigation -->
   <div class="tabs">
-    <div class="tab" onclick="switchMode('walkthrough')">Walkthrough</div>
-    <div class="tab" onclick="switchMode('pull')">Pull List</div>
-    <div class="tab" onclick="switchMode('inventory')">Inventory</div>
+    <button class="tab-button active" onclick="switchMode('walkthrough')">Walkthrough</button>
+    <button class="tab-button" onclick="switchMode('pull')">Pull List</button>
+    <button class="tab-button" onclick="switchMode('inventory')">Inventory</button>
+  </div>
+
+  <div class="container">
+    <div class="section" id="walkthrough">
+      <h3>Mark Items Out of Stock</h3>
+      <div id="inventory-list"></div>
+    </div>
+
+    <div class="section" id="pull" style="display:none">
+      <h3>Pull List</h3>
+      <ul id="pull-list"></ul>
+    </div>
+
+    <div class="section" id="inventory" style="display:none">
+      <h3>Inventory Management</h3>
+      <input id="new-item" placeholder="Item name">
+      <select id="new-category">
+        <option value="Soil">Soil</option>
+        <option value="Mulch">Mulch</option>
+        <option value="Rock">Rock</option>
+        <option value="Brick">Brick</option>
+        <option value="Block">Block</option>
+        <option value="Pavers">Pavers</option>
+      </select>
+      <button onclick="addItem()">Add Item</button>
+      <ul id="inventory-admin"></ul>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCj4IuKWxrVLkUFLZHPw2pvwGsO6gaAP-k",
       authDomain: "outsapp2.firebaseapp.com",
       projectId: "outsapp2",
-      storageBucket: "outsapp2.firebasestorage.app",
+      storageBucket: "outsapp2.appspot.com",
       messagingSenderId: "890824530192",
       appId: "1:890824530192:web:8bb8ec74c444944fc9ed95"
     };
@@ -115,7 +148,6 @@
     const inventoryCol = collection(db, "inventory");
     const outOfStockCol = collection(db, "outOfStock");
 
-    // Load Inventory
     async function loadInventory() {
       const snapshot = await getDocs(inventoryCol);
       const container = document.getElementById("inventory-list");
@@ -123,19 +155,18 @@
       container.innerHTML = "";
       admin.innerHTML = "";
 
+      const outSnapshot = await getDocs(outOfStockCol);
+      const outItems = new Set();
+      outSnapshot.forEach(doc => outItems.add(doc.data().item));
+
       snapshot.forEach(docItem => {
         const data = docItem.data();
+        const out = outItems.has(data.name);
+
         const div = document.createElement("div");
-        div.className = "item";
-        const button = document.createElement("button");
-        button.textContent = "Out of Stock";
-        button.onclick = () => {
-          markOut(data.name, data.category);
-          button.textContent = "Marked Out";
-          button.disabled = true;
-        };
-        div.innerHTML = `<strong>${data.name}</strong> (${data.category}) `;
-        div.appendChild(button);
+        div.className = "item-card" + (out ? " out-marked" : "");
+        div.innerHTML = `<div><strong>${data.name}</strong><br><span class="category-label">${data.category}</span></div>` +
+          (!out ? `<button class="out-btn" onclick="markOut('${data.name}', '${data.category}')">Out of Stock</button>` : '');
         container.appendChild(div);
 
         const li = document.createElement("li");
@@ -144,22 +175,6 @@
       });
     }
 
-    // Search functionality for the Walkthrough tab
-    function searchItems() {
-      const query = document.getElementById("searchWalkthrough").value.toLowerCase();
-      const items = document.querySelectorAll("#inventory-list .item");
-
-      items.forEach(item => {
-        const name = item.querySelector("strong").textContent.toLowerCase();
-        if (name.includes(query)) {
-          item.style.display = "block";
-        } else {
-          item.style.display = "none";
-        }
-      });
-    }
-
-    // Add item to inventory
     async function addItem() {
       const input = document.getElementById("new-item");
       const category = document.getElementById("new-category").value;
@@ -171,53 +186,48 @@
       }
     }
 
-    // Delete item from inventory
     async function deleteItem(id) {
       await deleteDoc(doc(db, "inventory", id));
       loadInventory();
     }
 
-    // Mark item as out of stock
     async function markOut(itemName, category) {
       await addDoc(outOfStockCol, { item: itemName, category, time: new Date() });
+      loadInventory();
     }
 
-    // Switch tabs (Walkthrough, Pull List, Inventory)
+    async function deletePulled(id) {
+      await deleteDoc(doc(db, "outOfStock", id));
+    }
+
     function switchMode(mode) {
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tab-button[onclick*="${mode}"]`).classList.add('active');
+
       document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
       document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
       document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
     }
 
-    // Handle pull list and overhead pull list updates
     const pullList = document.getElementById("pull-list");
-    const overheadPullList = document.getElementById("overhead-pull-list");
-
     onSnapshot(outOfStockCol, snapshot => {
       pullList.innerHTML = "";
-      overheadPullList.innerHTML = "";
-
       snapshot.forEach(docItem => {
         const data = docItem.data();
         const li = document.createElement("li");
-        li.innerHTML = `${data.item} (${data.category}) <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
-
-        if (data.category === "Overhead") {
-          overheadPullList.appendChild(li);
-        } else {
-          pullList.appendChild(li);
-        }
+        li.innerHTML = `<strong>${data.item}</strong> <em>(${data.category})</em> <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
+        pullList.appendChild(li);
       });
+      loadInventory();
     });
 
-    // Mark pulled items from either list
-    async function deletePulled(id) {
-      await deleteDoc(doc(db, "outOfStock", id));
-    }
-
-    // Load initial data
     loadInventory();
     switchMode('walkthrough');
+    window.markOut = markOut;
+    window.deleteItem = deleteItem;
+    window.addItem = addItem;
+    window.deletePulled = deletePulled;
+    window.switchMode = switchMode;
   </script>
 </body>
 </html>
