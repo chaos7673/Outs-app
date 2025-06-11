@@ -1,11 +1,44 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Walkthrough App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Outs App</title>
+    <script type="module">
+      // Import Firebase functions
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // Your Firebase config (from screenshot)
+      const firebaseConfig = {
+        apiKey: "AIzaSyApASBtbRcOc2IOBmAu...",  // leave full value in real code
+        authDomain: "outs-app-6aac7.firebaseapp.com",
+        projectId: "outs-app-6aac7",
+        storageBucket: "outs-app-6aac7.appspot.com",
+        messagingSenderId: "917076178263",
+        appId: "1:917076178263:web:46e491..."
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Add out-of-stock item
+      async function markOutOfStock() {
+        try {
+          await addDoc(collection(db, "outs"), {
+            name: "Milk",
+            timestamp: new Date()
+          });
+          alert("Milk marked out of stock!");
+        } catch (e) {
+          console.error("Error adding document: ", e);
+        }
+      }
+
+      window.markOutOfStock = markOutOfStock;
+    </script>
   </head>
   <body>
-    <h1>🛒 Walkthrough App</h1>
-    <p>This is your live site on GitHub Pages.</p>
+    <h1>Mark Items Out of Stock</h1>
+    <button onclick="markOutOfStock()">Milk is Out</button>
   </body>
 </html>
