@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Outs App</title>
-    <script type="module">
-      // Import Firebase functions
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <title>Mark Items Out of Stock</title>
+  </head>
+  <body>
+    <h1>Mark Items Out of Stock</h1>
+    <button id="milkBtn">Milk is Out</button>
 
-      // Your Firebase config (from screenshot)
+    <script type="module">
+      // Import Firebase SDK
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      // Your Firebase project config (copy from Firebase Console)
       const firebaseConfig = {
-        apiKey: "AIzaSyApASBtbRcOc2IOBmAu...",  // leave full value in real code
-        authDomain: "outs-app-6aac7.firebaseapp.com",
-        projectId: "outs-app-6aac7",
-        storageBucket: "outs-app-6aac7.appspot.com",
-        messagingSenderId: "917076178263",
-        appId: "1:917076178263:web:46e491..."
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
       };
 
       // Initialize Firebase
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // Add out-of-stock item
-      async function markOutOfStock() {
+      // Function to mark item out of stock
+      async function markOutOfStock(itemName) {
         try {
-          await addDoc(collection(db, "outs"), {
-            name: "Milk",
+          await addDoc(collection(db, "out-of-stock"), {
+            name: itemName,
             timestamp: new Date()
           });
-          alert("Milk marked out of stock!");
+          alert(`${itemName} marked out of stock`);
         } catch (e) {
           console.error("Error adding document: ", e);
         }
       }
 
-      window.markOutOfStock = markOutOfStock;
+      // Button click event
+      document.getElementById("milkBtn").addEventListener("click", () => {
+        markOutOfStock("Milk");
+      });
     </script>
-  </head>
-  <body>
-    <h1>Mark Items Out of Stock</h1>
-    <button onclick="markOutOfStock()">Milk is Out</button>
   </body>
 </html>
