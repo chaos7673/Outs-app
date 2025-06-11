@@ -1,106 +1,120 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Store Walkthrough App</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Depot Recovery</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
+      background-color: #f5f5f5;
+      color: #333;
     }
-    header {
-      background-color: #ff6600;
-      padding: 10px;
+
+    .header {
+      background-color: #f96302;
       color: white;
-      display: flex;
-      align-items: center;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    header img {
-      height: 40px;
-      margin-right: 10px;
-    }
-    h1 {
-      font-size: 20px;
-      margin: 0;
-    }
+
     .tabs {
       display: flex;
+      justify-content: center;
       background-color: #ffa64d;
-      justify-content: space-around;
-      padding: 10px 0;
     }
-    .tab {
+
+    .tab-button {
       flex: 1;
-      text-align: center;
-      padding: 10px;
-      cursor: pointer;
+      padding: 14px;
+      background: none;
+      border: none;
+      font-size: 16px;
       font-weight: bold;
       color: white;
+      cursor: pointer;
     }
-    .tab.active {
-      background-color: #ff6600;
+
+    .tab-button.active {
+      background-color: #f96302;
+      border-bottom: 3px solid white;
     }
-    .content {
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
       padding: 20px;
-    }
-    .item {
       background: white;
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h3 {
+      margin-top: 0;
+    }
+
+    .item-card {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background-color: #fff;
+      padding: 12px 20px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .category-label {
-      font-size: 0.8em;
-      color: #666;
+
+    .item-card.out-marked {
+      opacity: 0.6;
     }
-    button {
-      padding: 6px 12px;
-      background-color: #ff6600;
+
+    button.out-btn {
+      background-color: #f96302;
       border: none;
       color: white;
-      border-radius: 3px;
+      padding: 8px 16px;
+      border-radius: 4px;
       cursor: pointer;
     }
-    button:disabled {
-      background-color: #aaa;
+
+    .category-label {
+      font-size: 12px;
+      color: #999;
     }
+
     input, select {
       padding: 8px;
-      margin: 5px 0;
-      width: 100%;
-      max-width: 300px;
-      display: block;
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/TheHomeDepot.svg/2560px-TheHomeDepot.svg.png" alt="Logo">
-    <h1>Store Walkthrough App</h1>
-  </header>
-  <div class="tabs">
-    <div class="tab active" onclick="switchMode('walkthrough')">Walkthrough</div>
-    <div class="tab" onclick="switchMode('pull')">Pull List</div>
-    <div class="tab" onclick="switchMode('inventory')">Inventory</div>
+  <div class="header">
+    <h1>Depot Recovery</h1>
   </div>
-  <div class="content">
-    <div id="walkthrough-section">
+  <div class="tabs">
+    <button class="tab-button active" onclick="switchMode('walkthrough')">Walkthrough</button>
+    <button class="tab-button" onclick="switchMode('pull')">Pull List</button>
+    <button class="tab-button" onclick="switchMode('inventory')">Inventory</button>
+  </div>
+
+  <div class="container">
+    <div class="section" id="walkthrough">
       <h3>Mark Items Out of Stock</h3>
       <div id="inventory-list"></div>
     </div>
-    <div id="pull-section" style="display:none">
+
+    <div class="section" id="pull" style="display:none">
       <h3>Pull List</h3>
       <ul id="pull-list"></ul>
     </div>
-    <div id="inventory-section" style="display:none">
-      <h3>Manage Inventory</h3>
+
+    <div class="section" id="inventory" style="display:none">
+      <h3>Inventory Management</h3>
       <input id="new-item" placeholder="Item name">
       <select id="new-category">
         <option value="Soil">Soil</option>
@@ -108,7 +122,7 @@
         <option value="Rock">Rock</option>
         <option value="Brick">Brick</option>
         <option value="Block">Block</option>
-        <option value="Paver">Paver</option>
+        <option value="Pavers">Pavers</option>
       </select>
       <button onclick="addItem()">Add Item</button>
       <ul id="inventory-admin"></ul>
@@ -123,7 +137,7 @@
       apiKey: "AIzaSyCj4IuKWxrVLkUFLZHPw2pvwGsO6gaAP-k",
       authDomain: "outsapp2.firebaseapp.com",
       projectId: "outsapp2",
-      storageBucket: "outsapp2.firebasestorage.app",
+      storageBucket: "outsapp2.appspot.com",
       messagingSenderId: "890824530192",
       appId: "1:890824530192:web:8bb8ec74c444944fc9ed95"
     };
@@ -140,18 +154,19 @@
       const admin = document.getElementById("inventory-admin");
       container.innerHTML = "";
       admin.innerHTML = "";
+
+      const outSnapshot = await getDocs(outOfStockCol);
+      const outItems = new Set();
+      outSnapshot.forEach(doc => outItems.add(doc.data().item));
+
       snapshot.forEach(docItem => {
         const data = docItem.data();
+        const out = outItems.has(data.name);
+
         const div = document.createElement("div");
-        div.className = "item";
-        const btn = document.createElement("button");
-        btn.textContent = "Out of Stock";
-        btn.onclick = async () => {
-          btn.disabled = true;
-          await addDoc(outOfStockCol, { item: data.name, category: data.category, time: new Date() });
-        };
-        div.innerHTML = `<div><strong>${data.name}</strong><div class='category-label'>${data.category}</div></div>`;
-        div.appendChild(btn);
+        div.className = "item-card" + (out ? " out-marked" : "");
+        div.innerHTML = `<div><strong>${data.name}</strong><br><span class="category-label">${data.category}</span></div>` +
+          (!out ? `<button class="out-btn" onclick="markOut('${data.name}', '${data.category}')">Out of Stock</button>` : '');
         container.appendChild(div);
 
         const li = document.createElement("li");
@@ -176,16 +191,22 @@
       loadInventory();
     }
 
+    async function markOut(itemName, category) {
+      await addDoc(outOfStockCol, { item: itemName, category, time: new Date() });
+      loadInventory();
+    }
+
     async function deletePulled(id) {
       await deleteDoc(doc(db, "outOfStock", id));
     }
 
     function switchMode(mode) {
-      document.getElementById("walkthrough-section").style.display = mode === 'walkthrough' ? "block" : "none";
-      document.getElementById("pull-section").style.display = mode === 'pull' ? "block" : "none";
-      document.getElementById("inventory-section").style.display = mode === 'inventory' ? "block" : "none";
-      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
-      document.querySelector(`.tab[onclick*='${mode}']`).classList.add("active");
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tab-button[onclick*="${mode}"]`).classList.add('active');
+
+      document.getElementById("walkthrough").style.display = mode === 'walkthrough' ? "block" : "none";
+      document.getElementById("pull").style.display = mode === 'pull' ? "block" : "none";
+      document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
     }
 
     const pullList = document.getElementById("pull-list");
@@ -194,17 +215,18 @@
       snapshot.forEach(docItem => {
         const data = docItem.data();
         const li = document.createElement("li");
-        li.className = "item";
-        li.innerHTML = `<div><strong>${data.item}</strong><div class='category-label'>${data.category}</div></div> <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
+        li.innerHTML = `<strong>${data.item}</strong> <em>(${data.category})</em> <button onclick="deletePulled('${docItem.id}')">Pulled</button>`;
         pullList.appendChild(li);
       });
+      loadInventory();
     });
 
     loadInventory();
     switchMode('walkthrough');
-    window.deletePulled = deletePulled;
+    window.markOut = markOut;
     window.deleteItem = deleteItem;
     window.addItem = addItem;
+    window.deletePulled = deletePulled;
     window.switchMode = switchMode;
   </script>
 </body>
