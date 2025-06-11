@@ -112,12 +112,14 @@
   </div>
 
   <div class="container">
+    <!-- Walkthrough Section -->
     <div class="section" id="walkthrough">
       <h3>Mark Items Out of Stock</h3>
       <input type="text" id="searchWalkthrough" class="search-bar" placeholder="Search for an item..." oninput="searchItems()">
       <div id="walkthroughList"></div>
     </div>
 
+    <!-- Pull List Section -->
     <div class="section" id="pull" style="display:none">
       <h3>Pull List</h3>
       <h4>Standard Pull List</h4>
@@ -126,6 +128,7 @@
       <div id="overheadPullList"></div>
     </div>
 
+    <!-- Inventory Section -->
     <div class="section" id="inventory" style="display:none">
       <h3>Inventory Management</h3>
       <input id="newItemName" placeholder="Item Name" />
@@ -147,6 +150,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
@@ -162,6 +166,7 @@
     const inventoryCol = collection(db, "inventory");
     const outOfStockCol = collection(db, "outOfStock");
 
+    // Load Inventory
     async function loadInventory() {
       const snapshot = await getDocs(inventoryCol);
       const container = document.getElementById("walkthroughList");
@@ -196,6 +201,7 @@
       });
     }
 
+    // Search Walkthrough items
     function searchItems() {
       const query = document.getElementById("searchWalkthrough").value.toLowerCase();
       const items = document.querySelectorAll("#walkthroughList .item-card");
@@ -210,6 +216,7 @@
       });
     }
 
+    // Add Item to Inventory
     async function addItem() {
       const name = document.getElementById("newItemName").value.trim();
       const sku = document.getElementById("newItemSku").value.trim();
@@ -220,15 +227,13 @@
       }
     }
 
+    // Delete Item
     async function deleteItem(id) {
       await deleteDoc(doc(db, "inventory", id));
       loadInventory();
     }
 
-    async function addToOverhead(itemName) {
-      await addDoc(outOfStockCol, { item: itemName, category: "Overhead", time: new Date(), overhead: true });
-    }
-
+    // Switch Tab (Walkthrough, Pull List, Inventory)
     function switchMode(mode) {
       document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
       document.querySelector(`.tab-button[onclick*="${mode}"]`).classList.add('active');
@@ -238,6 +243,12 @@
       document.getElementById("inventory").style.display = mode === 'inventory' ? "block" : "none";
     }
 
+    // Overhead Pull List
+    async function addToOverhead(itemName) {
+      await addDoc(outOfStockCol, { item: itemName, category: "Overhead", time: new Date(), overhead: true });
+    }
+
+    // Real-time Updates to Pull List and Overhead List
     onSnapshot(outOfStockCol, snapshot => {
       const pullList = document.getElementById("pullList");
       const overheadPullList = document.getElementById("overheadPullList");
@@ -257,6 +268,7 @@
       });
     });
 
+    // Initialize and Load Data
     loadInventory();
     switchMode('walkthrough');
   </script>
